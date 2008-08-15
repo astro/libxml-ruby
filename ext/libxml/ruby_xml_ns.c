@@ -26,9 +26,11 @@ VALUE
 ruby_xml_ns_initialize(VALUE self, VALUE node, VALUE href, VALUE prefix) {
   xmlNodePtr xnode;
   xmlNsPtr xns;
+  xmlChar *prefixS;
 
   Data_Get_Struct(node, xmlNode, xnode);
-  xns = xmlNewNs(xnode, (xmlChar*)StringValuePtr(href), (xmlChar*)StringValuePtr(prefix));
+  prefixS = NIL_P(prefix) ? NULL : StringValuePtr(prefix);
+  xns = xmlNewNs(xnode, (xmlChar*)StringValuePtr(href), prefixS);
 
   DATA_PTR(self) = xns;
   return self;  
