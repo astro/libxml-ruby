@@ -41,6 +41,7 @@ typedef struct ruby_xml_sax_parser_callbacks {
 */
 
 typedef struct ruby_xml_sax_parser {
+  int push_parser;
   xmlParserCtxtPtr xpc;
   xmlSAXHandlerPtr xsh;
   //ruby_xml_sax_parser_callbacks *cbp;
