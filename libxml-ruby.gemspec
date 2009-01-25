@@ -1,7 +1,7 @@
 --- !ruby/object:Gem::Specification 
 name: libxml-ruby
 version: !ruby/object:Gem::Version 
-  version: 0.9.8.1
+  version: 0.9.8.2
 platform: ruby
 authors: 
 - Charlie Savage
