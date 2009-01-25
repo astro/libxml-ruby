@@ -68,16 +68,13 @@ static ID CONTEXT_ATTR;
  */
 static VALUE rxml_sax_parser_initialize(int argc, VALUE *argv, VALUE self)
 {
-  VALUE context = Qnil;
 
-  rb_scan_args(argc, argv, "01", &context);
-
-  if (context == Qnil)
-  {
-    rb_warn("Passing no parameters to XML::SaxParser.new is deprecated.  Pass an instance of XML::Parser::Context instead.");
-    context = rb_class_new_instance(0, NULL, cXMLParserContext);
-  }
-
+  xmlParserCtxtPtr ctxt = xmlCreatePushParserCtxt((xmlSAXHandlerPtr)&xmlDefaultSAXHandler,
+                                                  NULL,
+                                                  "",
+                                                  0,
+                                                  "input.xml");
+  VALUE context = Data_Wrap_Struct(cXMLParserContext, NULL, xmlFreeParserCtxt, ctxt);
   rb_ivar_set(self, CONTEXT_ATTR, context);
   return self;
 }
@@ -89,7 +86,7 @@ static VALUE rxml_sax_parser_initialize(int argc, VALUE *argv, VALUE self)
  * Parse the input XML, generating callbacks to the object
  * registered via the +callbacks+ attributesibute.
  */
-static VALUE rxml_sax_parser_parse(VALUE self)
+static VALUE rxml_sax_parser_parse(VALUE self, VALUE chunk)
 {
   int status;
   VALUE context = rb_ivar_get(self, CONTEXT_ATTR);
@@ -97,14 +94,14 @@ static VALUE rxml_sax_parser_parse(VALUE self)
   Data_Get_Struct(context, xmlParserCtxt, ctxt);
 
   ctxt->sax2 = 1;
-	ctxt->userData = (void*)rb_ivar_get(self, CALLBACKS_ATTR);
+  ctxt->userData = (void*)rb_ivar_get(self, CALLBACKS_ATTR);
 
   if (ctxt->sax != (xmlSAXHandlerPtr) &xmlDefaultSAXHandler)
     xmlFree(ctxt->sax);
     
   ctxt->sax = (xmlSAXHandlerPtr)&rxml_sax_handler;
     
-  status = xmlParseDocument(ctxt);
+  status = xmlParseChunk(ctxt, RSTRING_PTR(chunk), RSTRING_LEN(chunk), 0);
 
   /* IMPORTANT - null the handle to our sax handler
      so libxml doesn't try to free it.*/
@@ -139,5 +136,5 @@ void ruby_init_xml_sax_parser(void)
 
   /* Instance Methods */
   rb_define_method(cXMLSaxParser, "initialize", rxml_sax_parser_initialize, -1);
-  rb_define_method(cXMLSaxParser, "parse", rxml_sax_parser_parse, 0);
+  rb_define_method(cXMLSaxParser, "parse", rxml_sax_parser_parse, 1);
 }
